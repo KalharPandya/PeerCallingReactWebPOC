@@ -7,9 +7,14 @@ const io = require("socket.io")(server, {
     methods: ["GET", "POST"],
   },
 });
+require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` });
 
 app.use(cors());
-const PORT = process.env.PORT || 8080;
+const port = process.env.PORT || 8000; 
+server.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
 app.get("/", (req, res) => {
   res.send("Hello World");
 });
