@@ -9,7 +9,7 @@ function App() {
       <Container maxW="1200px" mt="8">
         <Heading as="h2" size="2xl">
           {" "}
-          Video Chat App{" "}
+          P2P Video Call{" "}
         </Heading>
         <VideoPlayer />
         <Options />
