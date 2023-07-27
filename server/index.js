@@ -7,10 +7,10 @@ const io = require("socket.io")(server, {
     methods: ["GET", "POST"],
   },
 });
-require('dotenv').config({ path: `.env.${process.env.NODE_ENV}` });
+require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
 
 app.use(cors());
-const port = process.env.PORT || 8000; 
+const port = process.env.PORT || 8000;
 server.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
@@ -31,4 +31,4 @@ io.on("connection", (socket) => {
     io.to(data.to).emit("callAccepted", data.signal);
   });
 });
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+// server.listen(port, () => console.log(`Server is running on port ${port}`));
