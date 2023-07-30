@@ -7,6 +7,7 @@ const io = require("socket.io")(server, {
     methods: ["GET", "POST"],
   },
 });
+const socketToEmail = {};
 
 app.use(cors());
 const PORT = process.env.PORT || 8080;
@@ -14,15 +15,11 @@ app.get("/", (req, res) => {
   res.send("Hello World");
 });
 
-// Store the socket.id and email-id mapping
-const socketToEmail = {};
-
 io.on("connection", (socket) => {
-  socket.emit("me", socket.id); // not sure if we need to have a me stored and commincated with peer check into this
+  socket.emit("me", socket.id);
   console.log("socketID: " + socket.id);
   socket.on("authorizeUser", ({ email }) => {
     console.log("auth received");
-    // Store the email-id in association with the socket.id
     socketToEmail[socket.id] = email;
     // right now it is imp but look into alternative to not send actual socket.id in communication
 
@@ -36,7 +33,6 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // Remove the socket.id and email-id mapping when a user disconnects
     delete socketToEmail[socket.id];
     console.log(socketToEmail);
 
@@ -44,20 +40,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("callUser", ({ email, signalData, from, name }) => {
-    // Look up the socket.id associated with the email
     console.log("call email: " + email);
     console.log("call from: " + from);
     console.log("call name: " + name);
+    // Look up the socket.id associated with the email
     const userSocketId = Object.keys(socketToEmail).find(
       (socketId) => socketToEmail[socketId] == email
     );
     console.log("email->socket: " + userSocketId);
     if (userSocketId) {
-      // from = userSocketId;
-      // If the email is associated with a socket.id, forward the call request
       io.to(userSocketId).emit("callUser", { signal: signalData, from, name });
     } else {
-      // If the email is not associated with any socket.id, respond with an error
       socket.emit("callUserError", { error: "User not found" });
     }
   });
@@ -69,40 +62,6 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-/*
-
-const app = require("express")();
-const server = require("http").createServer(app);
-const cors = require("cors");
-const io = require("socket.io")(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
-
-app.use(cors());
-const PORT = process.env.PORT || 8080;
-app.get("/", (req, res) => {
-  res.send("Hello World");
-});
-
-io.on("connection", (socket) => {
-  socket.emit("me", socket.id);
-  socket.on("disconnect", () => {
-    socket.broadcast.emit("callEnded");
-  });
-  socket.on("callUser", ({ userToCall, signalData, from, name }) => {
-    io.to(userToCall).emit("callUser", { signal: signalData, from, name });
-  });
-  socket.on("answerCall", (data) => {
-    io.to(data.to).emit("callAccepted", data.signal);
-  });
-});
-server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-*/
 
 // idea/flow //
 
