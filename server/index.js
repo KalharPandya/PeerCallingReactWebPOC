@@ -124,3 +124,13 @@ server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
 // doubt //
 
 // when the app is closed will the peer recieve the call or app needs to be running or running in backgorund
+
+//For 28-07-2023
+//task
+// make that only authorized user are able to send call to each other and add rooms to join
+
+//implement
+//socket->email only when user clicks on create a room
+
+//idea
+//create a single unique id for room so that any user can join
