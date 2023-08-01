@@ -3,9 +3,19 @@ import { BiPhoneCall, BiPhoneOff, BiSolidEnvelope } from "react-icons/bi";
 import { SocketContext } from "../Context";
 
 const Options = () => {
-  const { callAccepted, callEnded, leaveCall, callUser, auth } =
-    useContext(SocketContext);
+  const {
+    callAccepted,
+    callEnded,
+    leaveCall,
+    callUser,
+    auth,
+    setRoomID,
+    RoomID,
+    createRoom,
+    joinRoom,
+  } = useContext(SocketContext);
   const [emailToCall, setEmailToCall] = useState("");
+
 
   const handleCallByEmail = () => {
     console.log("emailToCall: " + emailToCall);
@@ -20,7 +30,14 @@ const Options = () => {
     // }
   };
 
-  const handleCreateRoom = () => {};
+  const handleCreateRoom = () => {
+    console.log("option room: " + RoomID)
+    createRoom(RoomID); // change to local context later for RoomID
+  };
+
+  const handleJoinRoom = () => {
+    joinRoom(RoomID); // change to local context later for RoomID
+  };
 
   return (
     auth && (
@@ -39,9 +56,30 @@ const Options = () => {
               <BiPhoneCall style={{ marginRight: "8px" }} />
               Call by Email
             </button>
+            <label>Create RoomID</label>
+            <input
+              type="text"
+              value={RoomID}
+              onChange={(e) => setRoomID(e.target.value)}
+              placeholder="Enter Room Name"
+              style={{ width: "100%", marginTop: "10px" }}
+            />
             <button onClick={handleCreateRoom} style={styles.createRoom}>
               <BiSolidEnvelope style={{ marginRight: "8px" }} />
               Create Room
+            </button>
+
+            <label>Join RoomID</label>
+            <input
+              type="text"
+              value={RoomID}
+              onChange={(e) => setRoomID(e.target.value)}
+              placeholder="Enter Room Name"
+              style={{ width: "100%", marginTop: "10px" }}
+            />
+            <button onClick={handleJoinRoom} style={styles.createRoom}>
+              <BiSolidEnvelope style={{ marginRight: "8px" }} />
+              Join Room
             </button>
             {callAccepted && !callEnded && (
               <button onClick={leaveCall} style={styles.hangup}>

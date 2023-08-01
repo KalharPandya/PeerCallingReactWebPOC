@@ -12,8 +12,10 @@ const ContextProvider = ({ children }) => {
   const [name, setName] = useState("");
   const [call, setCall] = useState({});
   const [me, setMe] = useState("");
+  const [RoomID, setRoomID] = useState("");
   const [auth, setAuth] = useState(false);
   const [Username, setUsername] = useState(false);
+  // const [joinroomid, setJoinroomID] = useState("");
   const myVideo = useRef();
   const userVideo = useRef();
   const connectionRef = useRef();
@@ -41,7 +43,7 @@ const ContextProvider = ({ children }) => {
     setCallAccepted(true);
     const peer = new Peer({ initiator: false, trickle: false, stream });
     peer.on("signal", (data) => {
-      socket.emit("answerCall", { signal: data, to: call.from });
+      socket.emit("answerCall", { signal: data, to: call.from, room: RoomID });
     });
     peer.on("stream", (currentStream) => {
       userVideo.current.srcObject = currentStream;
@@ -50,16 +52,15 @@ const ContextProvider = ({ children }) => {
     connectionRef.current = peer;
   };
 
-  const callUser = (email) => {
-    console.log("callUser: " + email);
+  const callUser = () => {
     console.log("me: " + me);
     const peer = new Peer({ initiator: true, trickle: false, stream });
     peer.on("signal", (data) => {
       socket.emit("callUser", {
-        email,
         signalData: data,
         from: me,
         name,
+        room: RoomID,
       });
     });
     peer.on("stream", (currentStream) => {
@@ -70,6 +71,18 @@ const ContextProvider = ({ children }) => {
       peer.signal(signal);
     });
     connectionRef.current = peer;
+  };
+
+  const createRoom = (roomID) => {
+    console.log("create room: " + roomID);
+    socket.emit("createRoom", { roomID, });
+    callUser();
+  };
+
+  const joinRoom = (roomID) => {
+    console.log("join: " + roomID);
+    socket.emit("joinRoom", { roomID, });
+    answerCall();
   };
 
   const leaveCall = () => {
@@ -89,15 +102,19 @@ const ContextProvider = ({ children }) => {
         name,
         Username,
         auth,
+        RoomID,
         setAuth,
         setName,
         setUsername,
+        setRoomID,
         callEnded,
         me,
         callUser,
         leaveCall,
         answerCall,
         authorizeUser,
+        createRoom,
+        joinRoom,
       }}
     >
       {children}

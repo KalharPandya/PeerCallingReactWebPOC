@@ -21,47 +21,82 @@ io.on("connection", (socket) => {
   socket.on("authorizeUser", ({ email }) => {
     console.log("auth received");
     socketToEmail[socket.id] = email;
-    // right now it is imp but look into alternative to not send actual socket.id in communication
-
     console.log(socketToEmail);
-
-    // Respond with a success message // not required right now
-    // socket.emit("userAuthorized", { success: true });
-
-    // Notify other peers that a new user has been authorized // not required right now
-    // socket.broadcast.emit("userAuthorized", { email, socketId: socket.id });
   });
 
-  socket.on("disconnect", () => {
-    delete socketToEmail[socket.id];
-    console.log(socketToEmail);
+  socket.on("createRoom", ({ roomID, }) => {
 
-    socket.broadcast.emit("callEnded");
-  });
-
-  socket.on("callUser", ({ email, signalData, from, name }) => {
-    console.log("call email: " + email);
-    console.log("call from: " + from);
-    console.log("call name: " + name);
-    // Look up the socket.id associated with the email
-    const userSocketId = Object.keys(socketToEmail).find(
-      (socketId) => socketToEmail[socketId] == email
-    );
-    console.log("email->socket: " + userSocketId);
-    if (userSocketId) {
-      io.to(userSocketId).emit("callUser", { signal: signalData, from, name });
-    } else {
-      socket.emit("callUserError", { error: "User not found" });
+    // console.log("create room: " + roomID);
+    // console.log(([socketToEmail[socket.id]]) == false)
+    // console.log("create adapter: " + io.sockets.adapter.rooms.has(roomID));
+    if ([socketToEmail[socket.id]] != false) {
+      if (io.sockets.adapter.rooms.has(roomID) == false) {
+        socket.join(roomID);
+        // socket.emit("handleCreate")
+        console.log("created room: " + roomID);
+      }
+      else {
+        console.log("Error: room already exist");
+      }
+    }
+    else {
+      console.log("Error: reload webpage");
     }
   });
 
+  socket.on("joinRoom", ({ roomID, }) => {
+    if (socketToEmail[socket.id] != false) {
+      console.log("adapter: " + io.sockets.adapter.rooms.has(roomID));
+      if (io.sockets.adapter.rooms.has(roomID) == true) {
+        socket.join(roomID);
+        console.log("joined room: " + roomID);
+      }
+      else {
+        console.log("Error: room doesnt exist");
+      }
+    }
+    else {
+      console.log("Error: reload webpage");
+    }
+  });
+
+  socket.on("disconnect", () => {
+    console.log("disconnet");
+    const allMember = [...io.sockets.adapter.rooms];
+    console.log("allMember: " + allMember);
+    if (allMember == false) {
+      console.log("room deleted");
+    }
+    delete socketToEmail[socket.id];
+    socket.broadcast.emit("callEnded");
+  });
+
+  socket.on("callUser", ({ signalData, from, name, room }) => {
+    io.to(room).emit("callUser", { signalData, from, name });
+  });
+
   socket.on("answerCall", (data) => {
-    console.log("data to: " + data.to);
-    io.to(data.to).emit("callAccepted", data.signal);
+    io.to(data.room).emit("callAccepted", data.signal);
   });
 });
 
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
+
+
+
+/*
+call flow
+keshav -> kalhar
+
+keshav clicks on Call invokes callUser emits callUser to socket
+socket sends signal to address mentioned in signal by emitting callUser
+kalhar receives call from keshav (receives in useEffect sets isReceivingCall)
+kalhar clicks on answer call invokes answerCall emits answerCall to socket
+server emits callAccepted with kalhar signal
+keshav receives callAccepted and sets setCallAccepted and stream is in 'call' useState
+in this both peer objects are set upped and then they take care of transfer of signal
+
+*/
 
 // idea/flow //
 

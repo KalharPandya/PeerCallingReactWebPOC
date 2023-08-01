@@ -5,16 +5,7 @@ import { SocketContext } from "../Context";
 const AuthButton = () => {
   const { loginWithRedirect, logout, isAuthenticated, user } = useAuth0();
   const { setName } = useContext(SocketContext);
-  const authButtonStyle = {
-    backgroundColor: "#c200ff",
-    color: "white",
-    padding: "8px 16px",
-    borderRadius: "4px",
-    border: "10px",
-    cursor: "pointer",
-    marginRight: "10px",
-  };
-
+  
   return (
     <button
       onClick={
@@ -30,4 +21,13 @@ const AuthButton = () => {
   );
 };
 
+const authButtonStyle = {
+  backgroundColor: "#c200ff",
+  color: "white",
+  padding: "8px 16px",
+  borderRadius: "4px",
+  border: "10px",
+  cursor: "pointer",
+  marginRight: "10px",
+};
 export default AuthButton;
