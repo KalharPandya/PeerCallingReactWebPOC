@@ -30,9 +30,13 @@ const ContextProvider = ({ children }) => {
         }
       });
     socket.on("me", (id) => setMe(id));
-    socket.on("callUser", ({ from, name: callerName, signal }) => {
-      setCall({ isReceivingCall: true, from, name: callerName, signal });
+    socket.on("callUser", ({ from, name: callerName, signalData }) => {
+      setCall({ isReceivingCall: true, from, name: callerName, signalData });
+      // console.log("useEffect signal: " + JSON.stringify(call));
+      // socket.emit("callReceived");
+      // answerCall();
     });
+
   }, []);
 
   const authorizeUser = (email) => {
@@ -43,12 +47,15 @@ const ContextProvider = ({ children }) => {
     setCallAccepted(true);
     const peer = new Peer({ initiator: false, trickle: false, stream });
     peer.on("signal", (data) => {
-      socket.emit("answerCall", { signal: data, to: call.from, room: RoomID });
+      // socket.emit("answerCall", { signal: data, to: call.from, room: RoomID });
+      // console.log("answerCall signal: "+signal)
+      socket.emit("answerCall", { signalData: data, to: call.from, room: RoomID });
     });
     peer.on("stream", (currentStream) => {
       userVideo.current.srcObject = currentStream;
     });
-    peer.signal(call.signal);
+    console.log("call signal: " + JSON.stringify(call));
+    peer.signal(call.signalData);
     connectionRef.current = peer;
   };
 
@@ -70,19 +77,35 @@ const ContextProvider = ({ children }) => {
       setCallAccepted(true);
       peer.signal(signal);
     });
+    // socket.on("new", () => {
+    //   console.log("new");
+    //   callUser();
+    // });
+    // if (!callAccepted) {
+    //   callUser();
+    // }
     connectionRef.current = peer;
   };
 
   const createRoom = (roomID) => {
     console.log("create room: " + roomID);
-    socket.emit("createRoom", { roomID, });
-    callUser();
+    socket.emit("createRoom", { roomID });
+    // callUser();
+    socket.on("new", () => {
+      console.log("new");
+      callUser();
+    });
   };
 
   const joinRoom = (roomID) => {
     console.log("join: " + roomID);
-    socket.emit("joinRoom", { roomID, });
-    answerCall();
+    socket.emit("joinRoom", { roomID });
+    socket.on("answer", () => {
+      console.log("join answerCall");
+      console.log("call signal: " + JSON.stringify(call));
+      // answerCall();
+    });
+    // answerCall();
   };
 
   const leaveCall = () => {

@@ -24,7 +24,7 @@ io.on("connection", (socket) => {
     console.log(socketToEmail);
   });
 
-  socket.on("createRoom", ({ roomID, }) => {
+  socket.on("createRoom", ({ roomID }) => {
 
     // console.log("create room: " + roomID);
     // console.log(([socketToEmail[socket.id]]) == false)
@@ -44,11 +44,12 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("joinRoom", ({ roomID, }) => {
+  socket.on("joinRoom", ({ roomID }) => {
     if (socketToEmail[socket.id] != false) {
       console.log("adapter: " + io.sockets.adapter.rooms.has(roomID));
       if (io.sockets.adapter.rooms.has(roomID) == true) {
         socket.join(roomID);
+        socket.broadcast.to(roomID).emit("new");
         console.log("joined room: " + roomID);
       }
       else {
@@ -72,17 +73,23 @@ io.on("connection", (socket) => {
   });
 
   socket.on("callUser", ({ signalData, from, name, room }) => {
-    io.to(room).emit("callUser", { signalData, from, name });
+    // io.to(room).emit("callUser", { signalData, from, name });
+    console.log("signal: " + JSON.stringify(signalData));
+    socket.broadcast.to(room).emit("callUser", { signalData, from, name });
+    socket.emit("answer");
   });
 
   socket.on("answerCall", (data) => {
-    io.to(data.room).emit("callAccepted", data.signal);
+    // io.to(data.room).emit("callAccepted", data.signal);
+    socket.broadcast.to(data.room).emit("callAccepted", data.signalData);
   });
+
+  // socket.on("callReceived", () => {
+  //   socket.emit("answer");
+  // });
 });
 
 server.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
-
-
 
 /*
 call flow
